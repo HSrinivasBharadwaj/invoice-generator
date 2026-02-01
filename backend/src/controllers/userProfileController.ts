@@ -68,7 +68,7 @@ export const updateUserProfile = async (req: Request, res: Response): Promise<vo
             user: updatedUser
         });
     } catch (error) {
-        console.log(error);
+        console.error("Update profile error:", error);
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
@@ -81,9 +81,9 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
         }
         const { currentPassword, newPassword } = req.body;
         // Validation
-        if (!currentPassword || !newPassword) {
+        if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
             res.status(400).json({ 
-                error: "Current password and new password are required" 
+                error: "Current password and new password are required and must be strings" 
             });
             return;
         }
@@ -137,5 +137,29 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     } catch (error) {
         console.error("Change password error:", error);
         res.status(500).json({ error: "Internal Server Error" })
+    }
+}
+
+export const deleteAccount = async(req:Request, res:Response) : Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+        const deletedUser = await prisma.user.delete({
+            where: {id: req.user.id},
+            select: { id: true, email: true }
+        })
+        res.status(200).json({
+            message: "Account deleted successfully",
+            data: deletedUser
+        }); 
+    } catch (error) {
+        console.error("Delete account error:", error);
+        if (error instanceof Error && error.message.includes('not found')) {
+            res.status(404).json({ error: "User not found" });
+        } else {
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     }
 }

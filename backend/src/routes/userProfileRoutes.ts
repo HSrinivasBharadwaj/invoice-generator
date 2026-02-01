@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserProfile, updateUserProfile, changePassword } from "../controllers/userProfileController";
+import { getUserProfile, updateUserProfile, changePassword, deleteAccount } from "../controllers/userProfileController";
 import { ValidateJWT } from "../middlewares/authMiddleware";
 const userProfileRouter = express.Router();
 
@@ -12,6 +12,9 @@ userProfileRouter.get("/profile", getUserProfile)
 userProfileRouter.patch("/profile", updateUserProfile);
 
 //Change Password
-userProfileRouter.patch("/password", changePassword)
+userProfileRouter.patch("/password", changePassword);
+
+//Delete Account
+userProfileRouter.delete("/account", deleteAccount)
 
 export default userProfileRouter
