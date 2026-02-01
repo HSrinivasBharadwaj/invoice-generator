@@ -3,10 +3,12 @@ import { getUserProfile, updateUserProfile } from "../controllers/userProfileCon
 import { ValidateJWT } from "../middlewares/authMiddleware";
 const userProfileRouter = express.Router();
 
+userProfileRouter.use(ValidateJWT)
+
 //Get User profile
-userProfileRouter.get("/profile", ValidateJWT, getUserProfile)
+userProfileRouter.get("/profile", getUserProfile)
 
 //Update User Profile
-userProfileRouter.patch("/profile", ValidateJWT, updateUserProfile);
+userProfileRouter.patch("/profile", updateUserProfile);
 
 export default userProfileRouter
