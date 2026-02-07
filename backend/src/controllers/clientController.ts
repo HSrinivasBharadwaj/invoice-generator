@@ -116,3 +116,40 @@ export const getClientById = async(req:Request, res:Response): Promise<void> => 
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
+
+export const deleteClientById = async(req:Request, res:Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+        const clientId = req.params.id;
+        // First, fetch the client to verify it exists and user owns it
+        const client = await prisma.client.findUnique({
+            where: {
+                id: clientId
+            }
+        });
+        if (!client) {
+            res.status(404).json({ error: "Client not found" });
+            return;
+        }
+        if (client.userId !== req.user.id) {
+            res.status(403).json({ error: "Unauthorized access" });
+            return;
+        }
+        //Now delete the client
+        await prisma.client.delete({
+            where: {
+                id: clientId
+            }
+        });
+        
+        res.status(200).json({
+            message: "Client deleted successfully"
+        });
+    } catch (error) {
+        console.error("Error while deleting client:", error);
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+}
