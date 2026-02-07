@@ -62,7 +62,7 @@ export const createClient = async (req: Request, res: Response): Promise<void> =
     }
 }
 
-export const getAllClients = async(req: Request, res:Response): Promise<void> => {
+export const getAllClients = async (req: Request, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({ error: "Not authenticated" });
@@ -87,7 +87,7 @@ export const getAllClients = async(req: Request, res:Response): Promise<void> =>
     }
 }
 
-export const getClientById = async(req:Request, res:Response): Promise<void> => {
+export const getClientById = async (req: Request, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({ error: "Not authenticated" });
@@ -117,7 +117,7 @@ export const getClientById = async(req:Request, res:Response): Promise<void> => 
     }
 }
 
-export const deleteClientById = async(req:Request, res:Response): Promise<void> => {
+export const deleteClientById = async (req: Request, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({ error: "Not authenticated" });
@@ -144,12 +144,86 @@ export const deleteClientById = async(req:Request, res:Response): Promise<void> 
                 id: clientId
             }
         });
-        
+
         res.status(200).json({
             message: "Client deleted successfully"
         });
     } catch (error) {
         console.error("Error while deleting client:", error);
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+}
+
+export const updateClientById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+        const clientId = req.params.id;
+        const { name, email, phone, address, city, state, zipCode, country, taxNumber, notes } = req.body;
+        if (name !== undefined) {
+            res.status(400).json({ error: "Client name cannot be changed via this endpoint. Use name-change workflow." });
+            return;
+        }
+        //Check whether the client Id exists in db
+        const client = await prisma.client.findUnique({
+            where: {
+                id: clientId
+            }
+        })
+        if (!client) {
+            res.status(404).json({ error: "Client not found" });
+            return;
+        }
+        if (client.userId !== req.user.id) {
+            res.status(403).json({ error: "Unauthorized access" });
+            return;
+        }
+        const validationInput = {
+            name: client.name,
+            email,
+            phone,
+            address,
+            city,
+            state,
+            zipCode,
+            country,
+            taxNumber,
+            notes
+        }
+        const validation = ValidateClientData(validationInput);
+        if (!validation.isValid) {
+            res.status(400).json({ errors: validation.errors });
+            return;
+        }
+        const updateData: Record<string, string | null> = {};
+        if (email !== undefined) updateData.email = sanitizeString(email);
+        if (phone !== undefined) updateData.phone = sanitizeString(phone);
+        if (address !== undefined) updateData.address = sanitizeString(address);
+        if (city !== undefined) updateData.city = sanitizeString(city);
+        if (state !== undefined) updateData.state = sanitizeString(state);
+        if (zipCode !== undefined) updateData.zipCode = sanitizeString(zipCode);
+        if (country !== undefined) updateData.country = sanitizeString(country);
+        if (taxNumber !== undefined) updateData.taxNumber = sanitizeString(taxNumber);
+        if (notes !== undefined) updateData.notes = sanitizeString(notes);
+        if (Object.keys(updateData).length === 0) {
+            res.status(400).json({ error: "No updatable fields provided" });
+            return;
+        }
+        const updatedClient = await prisma.client.update({
+            where: {
+                id: clientId
+            },
+            data: updateData
+        })
+        res.status(200).json({
+            message: "Client updated successfully",
+            client: updatedClient,
+            changedFields: Object.keys(updateData)
+        });
+    } catch (error) {
+        console.error("Error while updating client:", error);
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
