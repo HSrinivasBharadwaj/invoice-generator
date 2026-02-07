@@ -1,6 +1,6 @@
 import express from "express";
 import { ValidateJWT } from "../middlewares/authMiddleware";
-import { createClient, getAllClients, getClientById, deleteClientById } from "../controllers/clientController";
+import { createClient, getAllClients, getClientById, deleteClientById, updateClientById } from "../controllers/clientController";
 const clientRouter = express.Router();
 
 //Authentication was required
@@ -17,5 +17,8 @@ clientRouter.get("/:id", getClientById)
 
 //Delete Client by ID
 clientRouter.delete("/:id", deleteClientById)
+
+//Update Client By Id
+clientRouter.patch("/:id", updateClientById)
 
 export default clientRouter
