@@ -25,5 +25,30 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations
+  clients        Client[]
+
   @@map("users") 
+}
+
+model Client {
+  id         String    @id @default(uuid())
+  userId     String    
+  name       String    
+  email      String?
+  phone      String?
+  address    String?
+  city       String?
+  state      String?
+  zipCode    String?
+  country    String?
+  taxNumber  String?   
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  //Relation
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)  
+
+  @@map("clients")
 }
