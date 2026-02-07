@@ -112,7 +112,7 @@ export const getClientById = async (req: Request, res: Response): Promise<void> 
             client: client
         });
     } catch (error) {
-        console.error("Error while creating client:", error);
+        console.error("Error while getting the client:", error);
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
@@ -162,10 +162,6 @@ export const updateClientById = async (req: Request, res: Response): Promise<voi
         }
         const clientId = req.params.id;
         const { name, email, phone, address, city, state, zipCode, country, taxNumber, notes } = req.body;
-        if (name !== undefined) {
-            res.status(400).json({ error: "Client name cannot be changed via this endpoint. Use name-change workflow." });
-            return;
-        }
         //Check whether the client Id exists in db
         const client = await prisma.client.findUnique({
             where: {
