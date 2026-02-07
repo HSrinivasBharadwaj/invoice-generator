@@ -82,6 +82,36 @@ export const getAllClients = async(req: Request, res:Response): Promise<void> =>
             total: clients.length
         });
     } catch (error) {
+        console.error("Error while fetching client:", error);
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+}
+
+export const getClientById = async(req:Request, res:Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+        const clientId = req.params.id;
+        const client = await prisma.client.findUnique({
+            where: {
+                id: clientId
+            }
+        })
+        if (!client) {
+            res.status(404).json({ error: "Client not found" });
+            return;
+        }
+        if (client.userId !== req.user.id) {
+            res.status(403).json({ error: "Unauthorized access" });
+            return;
+        }
+        res.status(200).json({
+            message: "Client fetched successfully",
+            client: client
+        });
+    } catch (error) {
         console.error("Error while creating client:", error);
         res.status(500).json({ error: "Internal Server Error" })
     }
