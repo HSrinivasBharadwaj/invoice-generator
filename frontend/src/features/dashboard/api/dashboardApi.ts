@@ -20,7 +20,6 @@ export interface RecentData {
 export const dashboardApi = {
   // Get dashboard stats
   getStats: async (): Promise<DashboardStats> => {
-    // Since we don't have a dedicated stats endpoint, we'll calculate from existing data
     const [clientsRes, invoicesRes] = await Promise.all([
       api.get('/clients'),
       api.get('/invoices'),
