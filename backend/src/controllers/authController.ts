@@ -6,8 +6,9 @@ import { prisma } from "../lib/prisma";
 
 
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string;
+// JWT_SECRET must match jsonwebtoken.Secret type (string | Buffer)
+const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET as jwt.Secret;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string; // keeps string for expiresIn option
 
 export const Signup = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -84,16 +85,18 @@ export const Login = async (req: Request, res: Response): Promise<void> => {
         }
         //Sign in the jwt
         const token = jwt.sign(
-            { id: findExistingUser.id }, 
+            { id: findExistingUser.id },
             JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN }  
+            { expiresIn: JWT_EXPIRES_IN } // jwt.SignOptions accepts string here
         );
         //Set the token in cookies
         res.cookie("token", token, {
             httpOnly: true,
-            sameSite: 'strict',
+            // if the frontend is on a different origin and we're in prod, allow cross-site cookie
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'strict',
             maxAge: 7 * 24 * 60 * 60 * 1000 , // 7 days in milliseconds
-            secure: process.env.NODE_ENV === "production",
+            // always secure - browsers will ignore it over HTTP but it protects in production
+            secure: process.env.NODE_ENV === "production" || true,
         })
         // Return user data (NOT password)
         const { password: _, ...userWithoutPassword } = findExistingUser;

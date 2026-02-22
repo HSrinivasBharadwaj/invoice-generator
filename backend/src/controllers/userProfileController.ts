@@ -2,13 +2,11 @@ import { Request, Response } from "express";
 import { sanitizeString } from "../utils/validation";
 import bcrypt from 'bcryptjs';
 import { prisma } from "../lib/prisma";
+import { ensureUser } from "../utils/guards";
 
 export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
 
         res.status(200).json({
             message: "User profile retrieved successfully",

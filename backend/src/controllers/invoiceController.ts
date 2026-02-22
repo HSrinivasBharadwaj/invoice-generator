@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { ensureUser } from "../utils/guards";
 
 export const createNewInvoice = async(req:Request,res:Response) => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
         //Get the details from the req.body
         const {clientId,
             dueDate,
@@ -123,10 +121,7 @@ export const createNewInvoice = async(req:Request,res:Response) => {
 
 export const getAllUserInvoices = async(req:Request, res: Response) => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
         const invoices = await prisma.invoice.findMany({
             where: {
                 userId: req.user.id
@@ -159,11 +154,8 @@ export const getAllUserInvoices = async(req:Request, res: Response) => {
 
 export const getInvoiceById = async(req:Request, res:Response) => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const {id} = req.params;
+        if (!ensureUser(req, res)) return;
+        const {id} = req.params as { id: string };
         const invoice = await prisma.invoice.findUnique({
             where: {id},
             include: {
@@ -204,11 +196,8 @@ export const getInvoiceById = async(req:Request, res:Response) => {
 
 export const deleteInvoice = async(req:Request, res:Response) => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const {id} = req.params;
+        if (!ensureUser(req, res)) return;
+        const {id} = req.params as { id: string };
         // Check if invoice exists and user owns it
         const invoice = await prisma.invoice.findUnique({
             where: { id }
@@ -244,11 +233,8 @@ export const deleteInvoice = async(req:Request, res:Response) => {
 
 export const updateInvoice = async(req:Request, res:Response) => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const { id } = req.params;
+        if (!ensureUser(req, res)) return;
+        const { id } = req.params as { id: string };
         const { 
             clientId, 
             dueDate, 
@@ -382,12 +368,9 @@ export const updateInvoice = async(req:Request, res:Response) => {
 
 export const updateInvoiceStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
 
-        const { id } = req.params;
+        const { id } = req.params as { id: string };
         const { status } = req.body;
 
         // Validate status

@@ -1,14 +1,12 @@
 import { Request, Response } from "express";
 import { ValidateClientData, sanitizeString } from "../utils/validation";
 import { prisma } from "../lib/prisma";
+import { ensureUser } from "../utils/guards";
 
 
 export const createClient = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
         //Get the client data from req.body
         const { name,
             email,
@@ -64,10 +62,7 @@ export const createClient = async (req: Request, res: Response): Promise<void> =
 
 export const getAllClients = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
+        if (!ensureUser(req, res)) return;
         const clients = await prisma.client.findMany({
             where: {
                 userId: req.user.id
@@ -89,11 +84,8 @@ export const getAllClients = async (req: Request, res: Response): Promise<void> 
 
 export const getClientById = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const clientId = req.params.id;
+        if (!ensureUser(req, res)) return;
+        const clientId = req.params.id as string; // ensure string type
         const client = await prisma.client.findUnique({
             where: {
                 id: clientId
@@ -119,11 +111,8 @@ export const getClientById = async (req: Request, res: Response): Promise<void> 
 
 export const deleteClientById = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const clientId = req.params.id;
+        if (!ensureUser(req, res)) return;
+        const clientId = req.params.id as string; // ensure string type
         // First, fetch the client to verify it exists and user owns it
         const client = await prisma.client.findUnique({
             where: {
@@ -156,11 +145,8 @@ export const deleteClientById = async (req: Request, res: Response): Promise<voi
 
 export const updateClientById = async (req: Request, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({ error: "Not authenticated" });
-            return;
-        }
-        const clientId = req.params.id;
+        if (!ensureUser(req, res)) return;
+        const clientId = req.params.id as string; // ensure string type
         const { name, email, phone, address, city, state, zipCode, country, taxNumber, notes } = req.body;
         //Check whether the client Id exists in db
         const client = await prisma.client.findUnique({

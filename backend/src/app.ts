@@ -2,6 +2,16 @@ import express from "express";
 import "dotenv/config";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
+
+// validate critical environment variables early
+if (!process.env.JWT_SECRET) {
+    console.error("FATAL: JWT_SECRET is not defined in environment");
+    process.exit(1);
+}
+if (!process.env.DATABASE_URL) {
+    console.error("FATAL: DATABASE_URL is not defined in environment");
+    process.exit(1);
+}
 import authRouter from "./routes/authRoutes";
 import userProfileRouter from './routes/userProfileRoutes';
 import clientRouter from "./routes/clientRoutes";
